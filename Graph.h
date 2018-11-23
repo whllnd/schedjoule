@@ -1,6 +1,10 @@
 #pragma once
 
-#include <Station.h>
+#include "Station.h"
+
+#include <iostream>
+#include <set>
+#include <map>
 
 namespace joule {
 
@@ -16,9 +20,10 @@ public:
 	};
 
 	struct Node {
-		StationID id;
-		std::set<Station::ID> predecessors;
-		std::set<Station::ID> successors;
+		Station::ID id;
+		//std::set<Station::ID> predecessors;
+		//std::set<Station::ID> successors;
+		std::set<Station::ID> connections;
 	};
 
 	Graph() {}
@@ -31,7 +36,8 @@ public:
 		if (auto conn{mDuration.find({from, to})}; mDuration.end() != conn) {
 			return conn->second;
 		}
-		return 0.;
+		std::cout << "Unknown connection: " << from << " -> " << to << std::endl;
+		throw std::logic_error("Unknown connection");
 	}
 
 	void addConnection(Station::ID from, Station::ID to, double const duration) {
@@ -40,16 +46,28 @@ public:
 			return;
 		}
 
+		//if (auto nodeFrom{mNodes.find(from)}; mNodes.end() != nodeFrom) {
+		//	nodeFrom->second.successors.insert(to);
+		//} else {
+		//	mNodes[from] = {from, {}, {to}};
+		//}
+
+		//if (auto nodeTo{mNodes.find(to)}; mNodes.end() != nodeTo) {
+		//	nodeTo->second.predecessors.insert(from);
+		//} else {
+		//	mNodes[to] = {to, {from}, {}};
+		//}
+
 		if (auto nodeFrom{mNodes.find(from)}; mNodes.end() != nodeFrom) {
-			nodeFrom->second.successors.insert(to);
+			nodeFrom->second.connections.insert(to);
 		} else {
-			mNodes[from] = {from, {}, {to}};
+			mNodes[from] = {from, {to}};
 		}
 
 		if (auto nodeTo{mNodes.find(to)}; mNodes.end() != nodeTo) {
-			nodeTo->second.predecessors.insert(from);
+			nodeTo->second.connections.insert(from);
 		} else {
-			mNodes[to] = {to, {from}, {}};
+			mNodes[to] = {to, {from}};
 		}
 
 		if (from > to) {
@@ -62,19 +80,28 @@ public:
 		return 0 < getDuration(from, to);
 	}
 
-	std::set<Station::ID> const& getSuccessors(Station::ID id) const {
+	std::set<Station::ID> const& getConnections(Station::ID const id) const {
 		if (auto node{mNodes.find(id)}; mNodes.end() != node) {
-			return node->second.successors;
+			return node->second.connections;
 		}
-		throw std::logic_error("Dude, no node.");
+		throw std::logic_error("jo!");
 	}
 
-	std::set<Station::ID> const& getPredecessors(Station::ID id) const {
-		if (auto node{mNodes.find(id)}; mNodes.end() != node) {
-			return node->second.predecessors;
-		}
-		throw std::logic_error("Dude, seriously. No node.");
-	}
+	//std::set<Station::ID> const& getSuccessors(Station::ID id) const {
+	//	if (auto node{mNodes.find(id)}; mNodes.end() != node) {
+	//		return node->second.successors;
+	//	}
+	//	throw std::logic_error("Dude, no node.");
+	//}
+
+	//std::set<Station::ID> const& getPredecessors(Station::ID id) const {
+	//	if (auto node{mNodes.find(id)}; mNodes.end() != node) {
+	//		return node->second.predecessors;
+	//	}
+	//	throw std::logic_error("Dude, seriously. No node.");
+	//}
+
+	std::map<Station::ID, Node> const& getNodes() const { return mNodes; }
 
 private:
 	std::map<Connection, double> mDuration;

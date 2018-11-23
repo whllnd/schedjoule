@@ -1,4 +1,5 @@
-#include <Graph.h>
+#include "Graph.h"
+#include "Dijkstra.h"
 
 namespace stations {
 
@@ -19,7 +20,7 @@ namespace stations {
 	joule::Station::ID Klosterstern = 9;
 	joule::Station::ID Jungfernstieg = 10;
 	joule::Station::ID Farmsen = 11;
-};
+}
 
 int main() {
 
@@ -37,10 +38,23 @@ int main() {
 
 	// U2 internal
 	graph.addConnection(stations::Emilienstrasse, stations::Schlump, 4.);
-	graph.addConnection(stations::Schlump, stations:BerlinerTor, 8.);
+	graph.addConnection(stations::Schlump, stations::BerlinerTor, 8.);
 	graph.addConnection(stations::BerlinerTor, stations::Billstedt, 10.);
 
 	// U1 internal
 	graph.addConnection(stations::Lattenkamp, stations::Klosterstern, 9.);
 	graph.addConnection(stations::Klosterstern, stations::Jungfernstieg, 6.);
 	graph.addConnection(stations::Jungfernstieg, stations::Farmsen, 25.);
+
+	joule::Dijkstra dijkstra{graph};
+	auto path{dijkstra.getMinPath(stations::LuebeckerStrasse, stations::Emilienstrasse)};
+	auto cost{0.};
+	std::cout << "Found " << path.size() << " stations" << std::endl;
+	for (int i{path.size()-1}; 0 <= i; --i) {
+		if (0 < i) {
+			cost += graph.getDuration(path[i], path[i-1]);
+		}
+		std::cout << "Station: " << path[i] << " duration: " << cost << std::endl;
+	}
+}
+
