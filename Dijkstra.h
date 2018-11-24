@@ -22,7 +22,7 @@ public:
 
 	Dijkstra(Graph const& graph) : mGraph(graph) {}
 
-	std::vector<Station::ID> getMinPath(Station::ID const start, Station::ID const end) const {
+	std::vector<Station::ID> getMinPath(Station const& start, Station const& end) const {
 
 		// Get some periphery going
 		MinHeap queue;
@@ -34,7 +34,7 @@ public:
 			handles[id] = queue.emplace(id, std::numeric_limits<double>::infinity());
 			predecessors[id] = -1;
 		}
-		auto& startHandle{handles[start]};
+		auto& startHandle{handles[start.id]};
 		(*startHandle).duration = 0.;
 		queue.update(startHandle);
 
@@ -45,12 +45,12 @@ public:
 			handles.erase(node.station);
 
 			// If we reached destination, return predecessor path
-			if (end == node.station) {
+			if (end.id == node.station) {
 				std::vector<Station::ID> path;
-				for (auto station{end}; -1 != predecessors[station]; station = predecessors[station]) {
+				for (auto station{end.id}; -1 != predecessors[station]; station = predecessors[station]) {
 					path.push_back(station);
 				}
-				path.push_back(start);
+				path.push_back(start.id);
 				return path;
 			}
 
